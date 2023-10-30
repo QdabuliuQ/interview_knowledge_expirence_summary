@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <button id="btn">点击发送事件</button>
+  <script>
+    class Event {
+      events = null
+      constructor() {
+        this.events = {}
+      }
+
+      // 事件监听
+      on(name, callback) {
+        if (!this.events[name]) {
+          this.events[name] = []  // 初始化为一个数组
+        }
+        // 将回调函数放入 数组
+        this.events[name].push(callback)
+      }
+
+      // 发送事件
+      emit(name, data) {
+        if (this.events[name]) {
+          // 保存进入
+          this.events[name].forEach(cb => {
+            // 执行回调函数并且保存 传入的data
+            cb(data)
+          });
+        }
+      }
+
+      // 销毁事件
+      off(name, callback) {
+        if (this.events[name]) {
+          if (callback) {
+            // 删除 等于callback的事件回调函数
+            this.events[name] = this.events[name].filters(cb => cb != callback)
+          } else {
+            // 如果不传callback 清除整个事件监听
+            this.events[name].length = 0
+          }
+        }
+      }
+    }
+
+    window.onload = function () {
+
+      let e = new Event()
+      e.on('message', (data) => {
+        console.log('接收到事件', data);
+      })
+
+      document.getElementById('btn').addEventListener('click', () => {
+        e.emit('message', '数据')
+      })
+    }
+  </script>
+</body>
+
+</html>

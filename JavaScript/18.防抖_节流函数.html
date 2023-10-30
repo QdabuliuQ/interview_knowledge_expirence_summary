@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .container {
+      width: 100%;
+      height: 400px;
+      background-color: #585855;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container"></div>
+  <script>
+    // 防抖函数
+    // 参数1：回调函数
+    // 参数2：时间阀
+    function debounce(func, wait) {
+      let timeout = null
+      // 返回一个新的函数
+      return function () {
+        // 保存当前this
+        let context = this
+        // 保存参数  可能是事件对象 event
+        let args = arguments
+
+        clearTimeout(timeout)
+        timeout = setTimeout(function() {
+          // 调用回调函数 修改 this
+          // 传递参数 事件对象
+          func.apply(context, args)
+        }, wait);
+      }
+    }
+
+    // // 节流函数(时间戳)
+    // // 参数1：回调函数
+    // // 参数2：时间阀
+    // function throttle(func, wait) {
+    //   let context, args;
+    //   // 上一次时间戳
+    //   let old = 0
+    //   console.log();
+    //   return function() {
+    //     // 保存当前的this
+    //     context = this
+    //     // 保存传入的参数
+    //     args = arguments
+    //     // 获取当前的时间戳
+    //     let now = Date.now()
+
+    //     if(now - old > wait) {
+    //       // 执行回调函数
+    //       func.apply(context, args)
+    //       old = now  // 更新上一次执行时间
+    //     }
+    //   }
+    // }
+
+    // 节流函数(定时器)
+    // 参数1：回调函数
+    // 参数2：时间阀
+    function throttle(func, wait) {
+      let context, args, timeout;
+      return function() {
+        context = this
+        args = arguments
+
+        if(!timeout) {
+          timeout = setTimeout(() => {
+            timeout = null
+            func.apply(context, args)
+          }, wait);
+        }
+      }
+    }
+
+    function handle() {
+      console.log(this);
+    }
+
+    // document.getElementsByClassName('container')[0].addEventListener('mousemove', debounce(handle, 500))
+    document.getElementsByClassName('container')[0].addEventListener('mousemove', throttle(handle, 500))
+  </script>
+</body>
+
+</html>

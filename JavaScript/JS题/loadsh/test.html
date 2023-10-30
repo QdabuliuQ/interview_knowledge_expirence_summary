@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script src="./lodash.min.js"></script>
+  <script>
+    
+
+    function memoize(func, resolver) {
+      if(typeof func !== "function") throw TypeError("error")
+
+      const memoizeFun = function(...args) {
+        const key = typeof resolver === "function" ? resolver.apply(this, args) : args[0]
+        if(memoizeFun.cache.has(key)) return memoizeFun.cache.get(key)
+        let result = func.apply(this, args)
+        memoizeFun.cache.set(key, result)
+        return result
+      }
+      memoizeFun.cache = new WeakMap()
+      return memoizeFun
+    }
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    // context this指向的对象
+    Function.prototype.myCall = function(context) {
+      // this指向调用 myCall 的函数
+      // console.log(this);
+      // 判断this是否是否一个函数
+      if(typeof this !== 'function') console.error('type error')
+      // arguments是类数组 无法使用数组上的方法
+      // 将arguments拆开放入数组当中 截取后面的参数
+      let args = [...arguments].splice(1)
+      // 如果context为空 则指向window
+      context = context || window
+      // 在context上创建fn属性 属性值为this
+      context.fn = this  // 指向调用的函数
+      // 调用方法 并且传入 args 参数
+      let result = context.fn(...args)  // 保存返回值
+      // 将属性删除
+      delete context.fn
+      // 返回函数执行结果
+      return result
+    }
+
+    // apply 发放接收两个参数 
+    // context this指向的对象
+    // args 传递的参数 数组
+    Function.prototype.myApply = function(context) {
+      if(typeof this !== 'function') {
+        throw new Error('Error')
+      }
+
+      let result = null
+      // 判断context是否存在  不存在则指向window
+      context = context || window
+      // 创建fn属性 属性值为调用的函数
+      context.fn = this
+      // 调用方法
+      // 如果有传递参数
+      if(arguments[1]) {
+        result = context.fn(...arguments[1])
+      } else  {  // 如果没有传递参数
+        result = context.fn()
+      }
+      // 删除属性
+      delete context.fn
+      // 返回结果
+      return result
+    }
+
+    // bind方法
+    Function.prototype.myBind = function(context) {
+      if(typeof this !== 'function') throw new Error('Error')
+      let args = [...arguments].splice(1)  // 截取传入的参数
+      let fn = this  // 将调用的函数保存到fn
+
+      // 返回一个新的函数
+      return function FN() {
+        // 函数内通过apply方法调用
+        // 如果作为构造函数进行调用 则 绑定this 否则绑定 context
+        return fn.apply(
+          this instanceof FN ? this : context,
+          args.concat(...arguments)
+        )
+      }
+    }
+
+
+
+    // function cat(desc) {
+    //   console.log(this.name, desc);
+    // }
+    // let obj = {
+    //   name: '喵喵'
+    // }
+    // let fn = cat.myBind(obj)
+    // fn('mm')
+
+    function Cat(name) {
+      this.name = name
+    }
+    let obj = {
+      name: 'nnn'
+    }
+    let c = Cat.myBind(obj, 'mm')
+    console.log(c);
+  </script>
+</body>
+</html>

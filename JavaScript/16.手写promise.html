@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    // 判断then返回的是否是 Promise 
+    // 如果是 Promise 则返回 Promise结果
+    // 如果不是 Promise 则直接返回res
+    function resolvePromise(x, resolve, reject, nextPromise) {
+      // 对x和nextPromise进行判断 判断是否相同， 防止出现循环引用问题
+      if(x === nextPromise) {
+        return reject(new TypeError('循环引用'))
+      }
+
+      if(x instanceof Promise) {  // then函数返回的是Promise
+        x.then(res => {
+          resolve(res)
+        }, (err) => {
+          reject(err)
+        })
+      } else {
+        resolve(x)
+      }
+    } 
+
+    // 手写promise
+    class Promise {
+      // 构造器中调用 executor
+      constructor(executor) {
+        this.state = 'pending' // 将状态绑定到实例上 默认为 pending
+        this.value = null // 成功后的值
+        this.reason = null // 失败后的原因
+        this.onResolvedCallbacks = [] // 暂存 then 方法成功回调函数
+        this.onRejectedCallbacks = [] // 暂存 then 方法失败回调函数
+
+        // executor接收两个函数 resolve reject
+        // 成功回调 和 失败回调
+        let resolve = (value) => { // resolve函数接收一个参数 保存成功后的值
+          // 调用 resolve 就需要将状态 pending 改为 fulfilled
+          if (this.state == 'pending') {
+            this.state = 'fulfilled' // 修改状态
+            this.value = value // 保存成功后的值
+
+            // 当执行了 resolve 的时候，就需要清空任务队列
+            this.onResolvedCallbacks.forEach(fn => fn())
+          }
+        }
+        let reject = (resson) => { // reject函数接收一个参数 保存失败的原因
+          // 调用 reject 就需要将状态 pending 改为 rejected
+          if (this.state == 'pending') {
+            this.state = 'rejected' // 修改状态
+            this.resson = resson // 保存失败后的原因
+
+            // 当执行了 reject 的时候，就需要清空任务队列
+            this.onRejectedCallbacks.forEach(fn => fn())
+          }
+        }
+
+        // 异常捕获
+        try {
+          executor(resolve, reject)
+        } catch (error) {
+          reject(error)
+        }
+      }
+
+      // then方法
+      // 参数：onFulfilled 函数  onRejected 函数
+      then(onFulfilled, onRejected) {
+        // 通过返回一个新的promise对象 实现链式调用
+        let nextPromise = new Promise((resolve, reject) => {
+          // 当状态是 fulfilled  调用 onFulfilled
+          if (this.state === 'fulfilled') {
+            // 将下面的代码修改成异步代码  为了能够将 nextPromise 正确传入 resolvePromise 中进行判断
+            setTimeout(() => {
+              // 调用 onFulfilled 传入 this.value
+              let res = onFulfilled(this.value)  // 保存上一次then的结果
+              resolvePromise(res, resolve, reject, nextPromise)  // 判断x的值
+            }, 0);
+          }
+          // 当状态是 rejected  调用 onRejected
+          if (this.state === 'rejected') {
+            // 调用 onRejected 传入 this.reason
+            onRejected(this.reason)
+          }
+
+          // 如果 state 为 pending 表示resolve异步任务还没有执行完成 将回调函数放入队列
+          if (this.state === 'pending') {
+            // 创建函数 调用onFulfilled函数  这种方法利用闭包保存传入的value变量
+            this.onResolvedCallbacks.push(() => {
+              onFulfilled(this.value)
+            })
+
+            this.onRejectedCallbacks.push(() => {
+              onRejected(this.resson)
+            })
+          }
+        })
+
+        return nextPromise
+      }
+    }
+
+    // resolve方法
+    Promise.resolve = function(val) {
+      return new Promise((resolve, reject) => {
+        resolve(val)
+      })
+    }
+    // reject方法
+    Promise.reject = function(val) {
+      return new Promise((resolve, reject) => {
+        reject(val)
+      })
+    }
+    // race方法
+    Promise.race = function(promises) {
+      return new Promise((resolve, reject) => {
+        // 循环调用
+        for(let i = 0; i < promises.length; i ++) {
+          // 优先完成的promise 会执行 然后修改状态  状态凝固后无法再修改
+          promises[i].then(resolve, reject)
+        }
+      })
+    }
+    // all方法
+    Promise.all = function(promises) {
+      let arr = []  // 存放结果
+      let i = 0  // 记录成功个数
+
+      function processData(index, data, resolve) {
+        arr[index] = data
+        i ++  // 成功次数增加
+        if(i == promises.length) {  // 当成功次数等于 传入promise数量
+          resolve(arr)  // 将结果作为数组进行返回
+        }
+      }
+
+      return new Promise((resolve, reject) => {
+        for(let j = 0; j < promises.length; j ++) {
+          promises[j].then((res) => {  // 成功回调函数中保存结果
+            processData(j, res, resolve)
+          }, reject)
+        }
+      })
+    }
+
+    let p1 = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(300)
+      }, 3000);
+    })
+    let p2 = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(200)
+      }, 2000);
+    })
+    let p3 = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(100)
+      }, 1000);
+    })
+    // Promise.race([p1, p2, p3]).then(res => console.log(res))
+    Promise.all([p1, p2, p3]).then(res => console.log(res))
+
+    // Promise.resolve(200).then(res => console.log(res))
+    
+    // 创建promise实例
+    // let p = new Promise((resolve, reject) => {
+    //   resolve('成功')
+    // })
+
+    // let p2 = p.then(res => {
+    //   return p2
+    // })
+    // p2.then(() => {
+
+    // }, (err) => {
+    //   console.log(err);
+    // })
+
+
+    // p.then(res => {
+    //   console.log(res, '1');
+    //   return new Promise((resolve, reject) => {
+    //     resolve('成功2')
+    //   })
+    // }).then(res => {
+    //   console.log(res, '2');
+    // })
+  </script>
+</body>
+
+</html>

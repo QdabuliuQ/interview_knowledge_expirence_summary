@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    let arr = [{
+        id: 1,
+        name: 'xxx'
+      },
+      {
+        id: 2,
+        name: '322'
+      },
+    ]
+    // 解构赋值 实现深拷贝
+    let newArr = [...arr]
+    newArr.push({
+      id: 3
+    })
+
+    let arr2 = [
+      [1, 2, 3],
+      [4, 5, 6]
+    ]
+
+    function deepClone(source) {
+      const targetObj = source.constructor == Array ? [] : {}; // 判断传进来的Object是数组还是对象
+      for (let keys in source) { // 遍历
+        if (source[keys] && typeof source[keys] == 'object') { // 如果是一个引用类型的变量
+          targetObj[keys] = deepClone(source[keys]) // 传入对象，递归调用
+        } else { // 非引用类型
+          targetObj[keys] = source[keys]; // 直接赋值
+        }
+      }
+      return targetObj
+    }
+    let newArr2 = deepClone(arr2)
+    newArr2[0].push(999)
+    console.log(arr2, newArr2);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    // 手写一个Promise[]
+    // Promise可以传入一个函数，该函数当中有两个参数 resolve reject
+    // resolve是成功的时候执行  reject是失败的时候执行
+    let fn = new Promise((resolve, reject) => {
+      if (true) {
+        resolve('xxx')
+      } else {
+        reject('ggg')
+      }
+    })
+
+    // Promise的链式调用
+    let fun = () => {  // fun函数返回的是一个Promise
+      return Promise.resolve('成功')
+    }
+    // fn的then方法可以传入一个函数，该函数fun的返回值也是一个Promise对象，
+    // 所以其后面也可以再次使用then函数进行立案时调用
+    fn.then(fun).then((res) => {
+      console.log(res);
+    })
+    
+    // 手写一个Promise
+    function myPromise(excutor) {
+      let self = this
+      self.status = 'pending'  // promise的状态
+      self.value = null  // 成功的值
+      self.reason = null  // 失败的值
+      
+      self.onFulfilledCallback = []  // 成功回调暂存区
+      self.onRejectedCallback = []  // 失败回调暂存区
+
+      function resolve(value) {  // 成功回调
+        if (self.value == 'pending') {
+          self.value = value  // 成功数据保存
+          self.status = 'fulfilled'   
+          // 状态改变，将暂存区当中的成功回调函数执行
+          self.onFulfilledCallback.forEach(item => item(value))
+        }
+      }
+
+      function reject(reason) {  // 失败的回调
+        if (self.value == 'pending') {
+          self.value = reason  // 失败原因保存
+          self.status = 'rejected'
+          // 状态改变，将暂存区当中的失败回调函数执行
+          self.onRejectedCallback.forEach(item => item(reason))
+        }
+      }
+      
+      // 执行Promise传入进来的函数，并且函数回调参数传入对应的resolve和reject
+      excutor && excutor(resolve, reject)
+    }
+
+    // 将then函数绑定到myPromise的原型上
+    myPromise.prototype.then = function(onFulfilled, onRejected) {
+      // 确保传入的参数是函数，如果不是，则定义一个函数
+      onFulfilled = typeof onFulfilled == 'function' ? onFulfilled : function(data) { resolve(data) }
+      onRejected = typeof onRejected == 'function' ? onRejected : function(err) { throw err }
+
+      let self = this
+      // 将回调函数放入暂存区
+      if (self.status == 'pending') {
+        self.onFulfilledCallback.push(onFulfilled)
+        self.onRejectedCallback.push(onRejected)
+      }
+    }
+
+  </script>
+</body>
+</html>
