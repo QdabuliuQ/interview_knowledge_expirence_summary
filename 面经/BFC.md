@@ -1,5 +1,3 @@
-BFC
-
 什么是`BFC`？
 `BFC`块级格式上下文，`block formatting context`，是一个独立的渲染区域，隔绝了内部和外部的联系，内部渲染不会影响外部。
 

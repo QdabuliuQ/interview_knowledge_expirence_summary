@@ -5,12 +5,12 @@
 ```javascript
 const demo = {
 	// 参数为对象时，需要提供install方法
-    install: (Vue) => {
-        console.log('自定义插件', Vue);
-        // 定义一些vue中常用的全局方法
+	install: (Vue) => {
+		console.log('自定义插件', Vue);
+		// 定义一些vue中常用的全局方法
 		Vue.prototype.$Toast = () => { console.log('全局toast提示') }; // toast提示,通过this.$Toast调用
 		Vue.prototype.$request = () => { console.log('全局request请求') }; // request请求,通过this.$request调用
-    }
+	}
 }
 export default demo;
 

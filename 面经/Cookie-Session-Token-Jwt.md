@@ -35,7 +35,9 @@
 * 客户端发起登录接口请求，服务器接收到后验证账号密码，两者无误后，根据查找到的用户信息，生成一个`token`返回给客户端，后续请求都需要携带`token`放在请求头`Header`中，服务器端收到`token`会进行解密，判断用户信息以及是否有效。
 
 `JWT`：`JSON Web Token`，是一种认证授权机制，跨域认证的方案；用户登录成功后，服务器端会根据用户信息生成`jwt`返回给客户端，后续客户端请求需要从`header`请求头的`Authorization`中添加`jwt`；服务器接收到请求后，也会从`Authorization`中获取`jwt`并进行解密
-`jwt`包含了三个部分：`header / payload / signature`；三部分用`.`分割，`payload`通常是用户的信息加密后的内容
+`jwt`包含了三个部分：`header / payload / signature`；三部分用`.`分割，`payload`通常是用户的信息内容；
+`header / payload`并不是加密，而是转为`base64`，需要注意的是，不能将用户的关键敏感信息存入，在前端可以通过`atob`进行转换；
+`signature`是防止伪造篡改；通过将`header / payload`合并，使用`HS256`进行加密，然后生成新的`signature`，和当前的`signature`进行对比，就可以判断是否发生了篡改。
 
 `token`和`jwt`的区别：
 
